@@ -34,10 +34,43 @@ class Leaderboard(commands.Cog):
         self.mode = mode
         await inter.response.send_message(f"Changed mode to {mode}")
 
+    def __sortDict(self, dict):
+        arr = []
+        Index = 0
+        print(len(dict))
+        for item in dict:
+            dictItem = dict[item]
+            print(len(arr))
+            if len(arr) == 0:
+                arr.append(dictItem)
+                Index = arr.index(dictItem)
+                continue
+
+            for arrItem in arr:
+                if arrItem["value"] > dictItem["value"]:
+                    # Index = arr.index(arrItem)
+                    continue
+                if arrItem["value"] == dictItem["value"]:
+                    # Index = arr.index(arrItem)
+                    continue
+                if arrItem["value"] < dictItem["value"]:
+                    Index = arr.index(arrItem)
+                    arr.insert(Index, dictItem)
+                    Index = arr.index(dictItem)
+                    break
+
+        print(Index)
+        for arrItem in arr:
+            arrItem["position"] = arr.index(arrItem) + 1
+
+        for item in arr:
+            dict[item["position"] - 1] = item
+
+        return dict, Index
+
     @commands.slash_command()
     async def add(self,
                   inter: disnake.ApplicationCommandInteraction,
-                  position: commands.Range[0, 75],
                   name: str,
                   value: int):
         """
@@ -45,12 +78,24 @@ class Leaderboard(commands.Cog):
 
         Parameters
         ----------
-        position (int): The position on the leaderboard
         name (string): The username of the person
         value (int): The ammount of X the user has.
         """
-        self.data[position] = {"name": name, "value": value}
+        position = len(self.data)
+
+        self.data[position] = {"position": position,
+                               "name": name, "value": value}
+        newdata = {}
+        for item in sorted(self.data):
+            newdata[item] = self.data[item]
+
+        self.data = newdata
         await inter.response.send_message(f"Added field: {self.data[position]}", ephemeral=True)  # noqa E501
+        self.data, Index = self.__sortDict(self.data)
+        originalMessage = await inter.original_message()
+        print(Index)
+        print(self.data)
+        await originalMessage.edit(f"Added field: {self.data[Index]}")  # noqa E501
 
     def __generateEnd(self, value):
         ends = {
@@ -98,9 +143,9 @@ class Leaderboard(commands.Cog):
         # Give role
         members = inter.guild.fetch_members()
         roleId = self.__getRole()
+        Log = ""
         if roleId is not None:
             role = inter.guild.get_role(roleId)
-            Log = ""
             async for member in members:
                 name = member.display_name
                 if member.get_role(roleId) is not None:
