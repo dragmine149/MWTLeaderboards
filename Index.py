@@ -8,6 +8,7 @@ from dpyConsole import Console  # type: ignore
 # Load discord stuff
 intents = disnake.Intents.default()
 intents.message_content = True
+intents.members = True
 client = commands.Bot(command_prefix='>', intents=intents)
 my_console = Console(client)
 

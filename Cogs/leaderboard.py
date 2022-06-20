@@ -9,6 +9,16 @@ class Leaderboard(commands.Cog):
         self.client = client
         self.mode = None
         self.data = {}
+        # self.__testMode()
+
+    def __testMode(self):
+        self.mode = "Test"
+        self.data = {
+            1: {
+                "name": "dragmine149",
+                "value": 10
+            }
+        }
 
     @commands.slash_command()
     async def setmode(self,
@@ -40,7 +50,7 @@ class Leaderboard(commands.Cog):
         value (int): The ammount of X the user has.
         """
         self.data[position] = {"name": name, "value": value}
-        await inter.response.send_message(f"Added field: {self.data[position]}")  # noqa E501
+        await inter.response.send_message(f"Added field: {self.data[position]}", ephemeral=True)  # noqa E501
 
     def __generateEnd(self, value):
         ends = {
@@ -60,12 +70,23 @@ class Leaderboard(commands.Cog):
             result = ends.get(0)
         return result
 
+    def __getRole(self):
+        roleId = {
+            "Most Rebirths": None,
+            "Most Kills": None,
+            "Reseting Rebirths": 988212587760087071,
+            "Reseting Kills": 988211618259288080,
+            "Test": None
+        }
+        return roleId.get(self.mode)
+
     @commands.slash_command()
     async def save(self,
                    inter: disnake.ApplicationCommandInteraction):
         """
         Saves the data and sends a file
         """
+        # Tests
         if self.mode is None:
             await inter.response.send_message("Please specifi a mode using `/setmode`!")  # noqa E501
             return
@@ -74,6 +95,25 @@ class Leaderboard(commands.Cog):
             await inter.response.send_message("Please enter some data using `/add`")  # noqa E501
             return
 
+        # Give role
+        members = inter.guild.fetch_members()
+        roleId = self.__getRole()
+        if roleId is not None:
+            role = inter.guild.get_role(roleId)
+            Log = ""
+            async for member in members:
+                name = member.display_name
+                if member.get_role(roleId) is not None:
+                    await member.remove_roles(role, reason="Leaderboard update, Reseting...")
+                    Log += f"Remove {member.mention} '{role.mention}'\n"
+
+                if name == self.data[1]["name"]:
+                    await member.add_roles(role, reason=f"Top of leaderboard for {self.mode}")
+                    Log += f"Gave {member.mention} '{role.mention}'\n"
+        else:
+            Log += f"No role id assaigned for {self.mode}"
+
+        # Saves files
         dataString = f"{self.mode} leaderboard\n\n"
         for index in self.data:
             value = self.data[index]["value"]
@@ -84,8 +124,24 @@ class Leaderboard(commands.Cog):
         with open(f"Files/{self.mode}-data.txt", "w+") as file:
             file.write(dataString)
 
+        with open(f"Files/{self.mode}-json.txt", "w+") as file:
+            file.write(self.data)
+
+        self.data = {}  # reset cache
+
         file = disnake.File(f"Files/{self.mode}-Data.txt", f"{self.mode} leaderboard.txt", description=f"{self.mode} leaderboard for this week.")  # noqa E501
         await inter.response.send_message("Here is your file: ", file=file)
+        if Log != "":
+            await inter.channel.send(f"Log:\n{Log}")
+
+    @commands.slash_command()
+    async def showcache(self,
+                        inter: disnake.ApplicationCommandInteraction):
+        """
+        Shows what is currently in the bot cache
+        """
+        cache = f"Data: {self.data}\nMode: {self.mode}"
+        await inter.response.send_message(cache)
 
     @commands.slash_command()
     async def showdata(self,
@@ -98,8 +154,6 @@ class Leaderboard(commands.Cog):
         ----------
         mode: Leaderboard you want the data of
         """
-        if mode is None:
-            mode = self.mode
 
         if not os.path.exists(f"Files/{mode}-data.txt"):
             await inter.response.send_message(f"Couldn't find data for {mode}!")
@@ -130,6 +184,19 @@ class Leaderboard(commands.Cog):
             embed.add_field(f"{userInfo[0]} - {userInfo[1]}", userInfo[3])
 
         await inter.response.send_message(embed=embed)
+
+    @commands.slash_command()
+    async def requestfile(self,
+                          inter: disnake.ApplicationCommandInteraction,
+                          mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+        """
+        Returns the file of the selected mode
+        """
+        try:
+            file = disnake.File(f"Files/{mode}-Data.txt", f"{mode} leaderboard.txt", description=f"{mode} leaderboard for this week.")  # noqa E501
+            await inter.response.send_message("Here is your file: ", file=file)
+        except FileNotFoundError:
+            await inter.response.send_message("No data has been recorded for this leaderboard yet!")
 
 
 def setup(client):

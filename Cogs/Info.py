@@ -10,7 +10,7 @@ class Information(commands.Cog):
     @commands.slash_command()
     async def help(self,
                    inter: disnake.ApplicationCommandInteraction,
-                   module: str = commands.Param(name="module", choices=["Main", "leaderboard", "Info"])):
+                   module: str = commands.Param(name="module", choices=["Main", "Fun", "leaderboard", "Info"])):
         """
         Shows helpful information about the bot and how all the commands work.
         """
@@ -20,16 +20,22 @@ class Information(commands.Cog):
             timestamp=datetime.datetime.now(),
             colour=disnake.Colour.random()
         )
+        embed.set_footer(text="Prefix = >, slash = /")
         if module == "Main":
-            embed.add_field("Reload", "Reload all files. (LIMITED USERS)")
+            embed.add_field("(prefix) Reload", "Reload all files. (LIMITED USERS)")
+        elif module == "Fun":
+            embed.add_field("(slash) pong", "Returns bot latency")
+            embed.add_field("(prefix) ping", "Returns bot latency")
         elif module == "leaderboard":
             embed.add_field("(slash) setmode", "Set the leaderboard you want to write to.")
             embed.add_field("(slash) add", "Add a leaderboard entry to memory.")
             embed.add_field("(slash) save", "Saves the data in memory to a file (and clears the data).")
             embed.add_field("(slash) showdata", "Shows the recent leaderboard in an embed message.")
+            embed.add_field("(slash) requestfile", "Returns the recent leaderboard file (same as showdata but a file instead)")
         elif module == "Info":
-            embed.add_field("help", "shows this menu")
-            embed.add_field("invite", "gives a link to invite the bot.")
+            embed.add_field("(slash) help", "shows this menu")
+            embed.add_field("(slash) invite", "gives a link to invite the bot.")
+            embed.add_field("(slash) updatelog", "Returns the update log")
 
         await inter.response.send_message(embed=embed)
 
@@ -46,6 +52,33 @@ class Information(commands.Cog):
         )
 
         await inter.response.send_message(components=[button])
+
+    @commands.slash_command()
+    async def updatelog(self,
+                        inter: disnake.ApplicationCommandInteraction):
+        """
+        Shows the update log of the bot
+        """
+        await inter.response.send_message(
+            """
+            Update 1:
+            - Added request file (get file after save)
+            - Added update log
+            - Added automatic roles for ranks.
+            - Added fun category to help
+            - Added showcache to see information currently in bot cache.
+            - Made `add` only visible to who called it.
+            """
+        )
+        await inter.channel.send(
+            """
+            Update 0:
+            - Made bot
+            - Added help, information
+            - Added setmode, add, save, showdata
+            - added ping (fun)
+            """
+        )
 
 
 def setup(client):
