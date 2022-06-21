@@ -77,7 +77,6 @@ Update 2:
 - Fixed an issue with cache length being too long for discord liking
 - Removed setmode
 - Changed how some files were saved. (Nothing visible, just internal stuff)
-- Started progress on wiki conversion. Currently disabled because i can't be bothered to do it atm.
             ```
             """,
             1: """

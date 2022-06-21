@@ -232,38 +232,6 @@ class Leaderboard(commands.Cog):
         except FileNotFoundError:
             await inter.response.send_message("No data has been recorded for this leaderboard yet!")
 
-#     @commands.slash_command()
-#     async def generatewikidata(self,
-#                                inter: disnake.ApplicationCommandInteraction,
-#                                mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
-#         """
-#         Returns a file with the data to put on the wiki.
-#         https://mineral-war-tycoon.fandom.com/wiki/Leaderboards
-#         """
-#         if not os.path.exists(f"{mode}.json"):
-#             inter.response.send_message("No data found for this mode!")
-#             return
-#         data = None
-#         with open(f"{mode}.json", "r") as file:
-#             data = file.read()
-#
-#         item = mode.split(" ")[1]
-#         headerText = '"article-table"'
-#         header = f"""{| class=%d
-# !Position
-# !Username
-# !%dH
-# """ % (headerText, item)
-#
-#         body = ""
-#         for itemIndex in range(len(data)):
-#             item = data[itemIndex]
-#             tableData = f"""|-
-# |{item["position"]}{self.__generateEnd(item["position"])}
-# |{item["name"]}
-# |{item["value"]}
-"""
-
 
 def setup(client):
     client.add_cog(Leaderboard(client))
