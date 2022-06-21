@@ -2,17 +2,16 @@ import disnake  # type: ignore
 from disnake.ext import commands  # type: ignore
 import os
 import datetime
+from textwrap import wrap
 
 
 class Leaderboard(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.mode = None
         self.data = {}
         # self.__testMode()
 
     def __testMode(self):
-        self.mode = "Test"
         self.data = {
             1: {
                 "name": "dragmine149",
@@ -20,27 +19,11 @@ class Leaderboard(commands.Cog):
             }
         }
 
-    @commands.slash_command()
-    async def setmode(self,
-                      inter: disnake.ApplicationCommandInteraction,
-                      mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):  # noqa E501
-        """
-        Sets the mode of the leaderboard for the data to record.
-
-        Paramaters
-        ----------
-        mode: The mode to record the data.
-        """
-        self.mode = mode
-        await inter.response.send_message(f"Changed mode to {mode}")
-
     def __sortDict(self, dict):
         arr = []
         Index = 0
-        print(len(dict))
         for item in dict:
             dictItem = dict[item]
-            print(len(arr))
             if len(arr) == 0:
                 arr.append(dictItem)
                 Index = arr.index(dictItem)
@@ -48,25 +31,27 @@ class Leaderboard(commands.Cog):
 
             for arrItem in arr:
                 if arrItem["value"] > dictItem["value"]:
-                    # Index = arr.index(arrItem)
                     continue
                 if arrItem["value"] == dictItem["value"]:
-                    # Index = arr.index(arrItem)
                     continue
                 if arrItem["value"] < dictItem["value"]:
-                    Index = arr.index(arrItem)
                     arr.insert(Index, dictItem)
-                    Index = arr.index(dictItem)
                     break
 
-        print(Index)
+            try:
+                Index = arr.index(dictItem)
+            except ValueError:
+                arr.append(dictItem)
+                Index = arr.index(dictItem)
+
         for arrItem in arr:
             arrItem["position"] = arr.index(arrItem) + 1
 
+        newdict = {}
         for item in arr:
-            dict[item["position"] - 1] = item
+            newdict[item["position"] - 1] = item
 
-        return dict, Index
+        return newdict, Index
 
     @commands.slash_command()
     async def add(self,
@@ -93,8 +78,8 @@ class Leaderboard(commands.Cog):
         await inter.response.send_message(f"Added field: {self.data[position]}", ephemeral=True)  # noqa E501
         self.data, Index = self.__sortDict(self.data)
         originalMessage = await inter.original_message()
-        print(Index)
-        print(self.data)
+        print({'Index': Index})
+        print({'self.data': self.data})
         await originalMessage.edit(f"Added field: {self.data[Index]}")  # noqa E501
 
     def __generateEnd(self, value):
@@ -115,7 +100,7 @@ class Leaderboard(commands.Cog):
             result = ends.get(0)
         return result
 
-    def __getRole(self):
+    def __getRole(self, mode):
         roleId = {
             "Most Rebirths": None,
             "Most Kills": None,
@@ -123,16 +108,17 @@ class Leaderboard(commands.Cog):
             "Reseting Kills": 988211618259288080,
             "Test": None
         }
-        return roleId.get(self.mode)
+        return roleId.get(mode)
 
     @commands.slash_command()
     async def save(self,
-                   inter: disnake.ApplicationCommandInteraction):
+                   inter: disnake.ApplicationCommandInteraction,
+                   mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
         """
         Saves the data and sends a file
         """
         # Tests
-        if self.mode is None:
+        if mode is None:
             await inter.response.send_message("Please specifi a mode using `/setmode`!")  # noqa E501
             return
 
@@ -142,7 +128,7 @@ class Leaderboard(commands.Cog):
 
         # Give role
         members = inter.guild.fetch_members()
-        roleId = self.__getRole()
+        roleId = self.__getRole(mode)
         Log = ""
         if roleId is not None:
             role = inter.guild.get_role(roleId)
@@ -153,40 +139,43 @@ class Leaderboard(commands.Cog):
                     Log += f"Remove {member.mention} '{role.mention}'\n"
 
                 if name == self.data[1]["name"]:
-                    await member.add_roles(role, reason=f"Top of leaderboard for {self.mode}")
+                    await member.add_roles(role, reason=f"Top of leaderboard for {mode}")
                     Log += f"Gave {member.mention} '{role.mention}'\n"
         else:
-            Log += f"No role id assaigned for {self.mode}"
+            Log += f"No role id assaigned for {mode}"
 
         # Saves files
-        dataString = f"{self.mode} leaderboard\n\n"
+        dataString = f"{mode} leaderboard\n\n"
         for index in self.data:
             value = self.data[index]["value"]
             name = self.data[index]["name"]
             end = self.__generateEnd(value)
             dataString += f"{index}{end} {name} - {value}, "
 
-        with open(f"Files/{self.mode}-data.txt", "w+") as file:
+        with open(f"Files/{mode}-data.txt", "w+") as file:
             file.write(dataString)
 
-        with open(f"Files/{self.mode}-json.txt", "w+") as file:
+        with open(f"Files/{mode}.json", "w+") as file:
             file.write(self.data)
 
         self.data = {}  # reset cache
 
-        file = disnake.File(f"Files/{self.mode}-Data.txt", f"{self.mode} leaderboard.txt", description=f"{self.mode} leaderboard for this week.")  # noqa E501
+        file = disnake.File(f"Files/{mode}-Data.txt", f"{mode} leaderboard.txt", description=f"{mode} leaderboard for this week.")  # noqa E501
         await inter.response.send_message("Here is your file: ", file=file)
         if Log != "":
             await inter.channel.send(f"Log:\n{Log}")
 
     @commands.slash_command()
     async def showcache(self,
-                        inter: disnake.ApplicationCommandInteraction):
+                        inter: disnake.ApplicationCommandInteraction,
+                        mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
         """
         Shows what is currently in the bot cache
         """
-        cache = f"Data: {self.data}\nMode: {self.mode}"
-        await inter.response.send_message(cache)
+        cache = wrap(f"Data: {self.data}\nMode: {mode}")
+        await inter.response.send_message(cache[0])
+        for i in range(len(cache) - 2, -1, -1):
+            await inter.channel.send(cache[i])
 
     @commands.slash_command()
     async def showdata(self,
@@ -242,6 +231,38 @@ class Leaderboard(commands.Cog):
             await inter.response.send_message("Here is your file: ", file=file)
         except FileNotFoundError:
             await inter.response.send_message("No data has been recorded for this leaderboard yet!")
+
+#     @commands.slash_command()
+#     async def generatewikidata(self,
+#                                inter: disnake.ApplicationCommandInteraction,
+#                                mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+#         """
+#         Returns a file with the data to put on the wiki.
+#         https://mineral-war-tycoon.fandom.com/wiki/Leaderboards
+#         """
+#         if not os.path.exists(f"{mode}.json"):
+#             inter.response.send_message("No data found for this mode!")
+#             return
+#         data = None
+#         with open(f"{mode}.json", "r") as file:
+#             data = file.read()
+#
+#         item = mode.split(" ")[1]
+#         headerText = '"article-table"'
+#         header = f"""{| class=%d
+# !Position
+# !Username
+# !%dH
+# """ % (headerText, item)
+#
+#         body = ""
+#         for itemIndex in range(len(data)):
+#             item = data[itemIndex]
+#             tableData = f"""|-
+# |{item["position"]}{self.__generateEnd(item["position"])}
+# |{item["name"]}
+# |{item["value"]}
+"""
 
 
 def setup(client):
