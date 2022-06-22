@@ -75,6 +75,7 @@ Update 3:
 - Added limit on adding people to data.
 - Fixed an issue with saving data
 - Added more secret messages
+- Fixed an issue in the saved file with index being 0
             ```""",
             2: """
             ```

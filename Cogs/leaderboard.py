@@ -177,7 +177,7 @@ class Leaderboard(commands.Cog):
             value = self.data[index]["value"]
             name = self.data[index]["name"]
             end = self.__generateEnd(value)
-            dataString += f"{index}{end} {name} - {value}, "
+            dataString += f"{index + 1}{end} {name} - {value}, "
 
         with open(f"Files/{mode}-data.txt", "w+") as file:
             file.write(dataString)
