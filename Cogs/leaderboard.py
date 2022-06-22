@@ -67,6 +67,9 @@ class Leaderboard(commands.Cog):
         value (int): The ammount of X the user has.
         """
         position = len(self.data)
+        if position >= 75:
+            await inter.response.send_message("Max Limit Reached!")
+            return
 
         self.data[position] = {"position": position,
                                "name": name, "value": value}
@@ -81,6 +84,30 @@ class Leaderboard(commands.Cog):
         print({'Index': Index})
         print({'self.data': self.data})
         await originalMessage.edit(f"Added field: {self.data[Index]}")  # noqa E501
+
+    @commands.slash_command()
+    async def edit(self,
+                   inter: disnake.ApplicationCommandInteraction,
+                   position: commands.Range[0, 75],
+                   name: str,
+                   value: int):
+        """
+        Edits a position in the array.
+
+        Parameters
+        ----------
+        position: User position
+        name(string): The username of the person
+        value(int): The ammount of X the user has.
+        """
+        for item in self.data:
+            if self.data[item]["position"] == position:
+                self.data[item]["name"] = name
+                self.data[item]["value"] = value
+                break
+
+        self.data, Index = self.__sortDict(self.data)
+        await inter.response.send_message(f"Edited field: {self.data[Index]}", ephemeral=True)
 
     def __generateEnd(self, value):
         ends = {
@@ -156,7 +183,7 @@ class Leaderboard(commands.Cog):
             file.write(dataString)
 
         with open(f"Files/{mode}.json", "w+") as file:
-            file.write(self.data)
+            file.write(str(self.data))
 
         self.data = {}  # reset cache
 
@@ -167,14 +194,13 @@ class Leaderboard(commands.Cog):
 
     @commands.slash_command()
     async def showcache(self,
-                        inter: disnake.ApplicationCommandInteraction,
-                        mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+                        inter: disnake.ApplicationCommandInteraction):
         """
         Shows what is currently in the bot cache
         """
-        cache = wrap(f"Data: {self.data}\nMode: {mode}")
+        cache = wrap(f"Data: {self.data}", 2000)
         await inter.response.send_message(cache[0])
-        for i in range(len(cache) - 2, -1, -1):
+        for i in range(len(cache) - 1, 0, -1):
             await inter.channel.send(cache[i])
 
     @commands.slash_command()

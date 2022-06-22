@@ -28,10 +28,9 @@ class Information(commands.Cog):
             embed.add_field("(slash) pong", "Returns bot latency")
             embed.add_field("(prefix) ping", "Returns bot latency")
         elif module == "leaderboard":
-            embed.add_field("(slash) setmode",
-                            "Set the leaderboard you want to write to.")
             embed.add_field(
                 "(slash) add", "Add a leaderboard entry to memory.")
+            embed.add_field("(slash) edit", "Edit a leaderboard entry")
             embed.add_field(
                 "(slash) save", "Saves the data in memory to a file (and clears the data).")
             embed.add_field("(slash) showdata",
@@ -67,6 +66,16 @@ class Information(commands.Cog):
         Shows the update log of the bot
         """
         msg = {
+            3: """
+            ```
+Update 3:
+- Fixed an issue with showcache and how that outputted it's data.
+- Added `edit` command to edit data in the cache.
+- Removed setmode from help menu
+- Added limit on adding people to data.
+- Fixed an issue with saving data
+- Added more secret messages
+            ```""",
             2: """
             ```
 Update 2:

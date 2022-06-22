@@ -14,7 +14,9 @@ class Fun(commands.Cog):
             100: "Oops, you hit the net... 1 point to me.",
             200: "Well done, i missed... 1 point to you.",
             300: "Erm, where did that ball go? Reset?",
-            400: "What am i doing? Why am i here?"
+            400: "What am i doing? Why am i here?",
+            69: "164 at time of recording",
+            420: "no?"
         }
         msg = switch.get(result)
         if msg is None:
