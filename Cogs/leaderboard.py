@@ -140,7 +140,7 @@ class Leaderboard(commands.Cog):
     @commands.slash_command()
     async def save(self,
                    inter: disnake.ApplicationCommandInteraction,
-                   mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+                   mode: str = commands.Param(name="mode", choices=["Most_Rebirths", "Most_Kills", "Reseting_Rebirths", "Reseting_Kills"])):
         """
         Saves the data and sends a file
         """
@@ -206,7 +206,7 @@ class Leaderboard(commands.Cog):
     @commands.slash_command()
     async def showdata(self,
                        inter: disnake.ApplicationCommandInteraction,
-                       mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+                       mode: str = commands.Param(name="mode", choices=["Most_Rebirths", "Most_Kills", "Reseting_Rebirths", "Reseting_Kills"])):
         """
         Returns an embed of the recent leaderboard.
 
@@ -248,7 +248,7 @@ class Leaderboard(commands.Cog):
     @commands.slash_command()
     async def requestfile(self,
                           inter: disnake.ApplicationCommandInteraction,
-                          mode: str = commands.Param(name="mode", choices=["Most Rebirths", "Most Kills", "Reseting Rebirths", "Reseting Kills"])):
+                          mode: str = commands.Param(name="mode", choices=["Most_Rebirths", "Most_Kills", "Reseting_Rebirths", "Reseting_Kills"])):
         """
         Returns the file of the selected mode
         """

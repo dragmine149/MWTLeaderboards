@@ -42,6 +42,7 @@ class Information(commands.Cog):
             embed.add_field("(slash) invite",
                             "gives a link to invite the bot.")
             embed.add_field("(slash) updatelog", "Returns the update log")
+            embed.add_field("(slash) tutorial", "Returns a youtube video")
 
         await inter.response.send_message(embed=embed)
 
@@ -61,11 +62,20 @@ class Information(commands.Cog):
 
     @commands.slash_command()
     async def updatelog(self,
-                        inter: disnake.ApplicationCommandInteraction):
+                        inter: disnake.ApplicationCommandInteraction,
+                        logNumber: int = 0):
         """
         Shows the update log of the bot
         """
         msg = {
+            4: """
+            ```
+Update 4:
+- Hopefully fixed an issue with saving and requesting data
+- Added option to only get 1 update log
+- Added tutorial command
+            ```
+            """,
             3: """
             ```
 Update 3:
@@ -110,9 +120,21 @@ Update 0:
             ```
             """
         }
+        if logNumber != 0:
+            await inter.response.send_message(msg.get(logNumber))
+            return
+
         await inter.response.send_message(msg.get(len(msg) - 1))
         for i in range(len(msg) - 2, -1, -1):
             await inter.channel.send(msg.get(i))
+
+    @commands.slash_command()
+    async def Tutorial(self,
+                       inter: disnake.ApplicationCommandInteraction):
+        """
+        Provides a youtube video tutorial
+        """
+        await inter.response.send_message('Tutorial: https://youtu.be/oFagOCDcULQ')
 
 
 def setup(client):
